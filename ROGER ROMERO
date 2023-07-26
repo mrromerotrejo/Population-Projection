@@ -1,0 +1,69 @@
+import matplotlib.pyplot as plt
+
+class PopulationProjection:
+    def __init__(self, initial_population, fertility_rate, mortality_rate, migration_rate):
+        self.population = initial_population
+        self.fertility_rate = fertility_rate
+        self.mortality_rate = mortality_rate
+        self.migration_rate = migration_rate
+
+    def project_population(self, years):
+        for _ in range(years):
+            new_population = [[0, 0] for _ in range(len(self.population))]
+            for age in range(len(self.population)):
+                for sex in range(2):
+                    births = self.population[age][sex] * self.fertility_rate[age][sex]
+                    deaths = self.population[age][sex] * self.mortality_rate[age][sex]
+                    migrants = self.population[age][sex] * self.migration_rate[age][sex]
+                    new_population[age][sex] = self.population[age][sex] + births - deaths + migrants
+            self.population = new_population
+
+    def get_population(self):
+        return self.population
+
+    def plot_population(self):
+        ages = range(len(self.population))
+        males_population = [group[0] for group in self.population]
+        females_population = [group[1] for group in self.population]
+
+        width = 0.35
+        fig, ax = plt.subplots()
+        rects1 = ax.bar(ages, males_population, width, label='Males')
+        rects2 = ax.bar([a + width for a in ages], females_population, width, label='Females')
+
+        ax.set_xlabel('Age Group')
+        ax.set_ylabel('Population')
+        ax.set_title('Population Projection by Age and Sex')
+        ax.set_xticks([a + width/2 for a in ages])
+        ax.set_xticklabels(ages)
+        ax.legend()
+
+        def autolabel(rects):
+            for rect in rects:
+                height = rect.get_height()
+                ax.annotate(f'{height}', xy=(rect.get_x() + rect.get_width() / 2, height),
+                            xytext=(0, 3), textcoords="offset points",
+                            ha='center', va='bottom')
+
+        autolabel(rects1)
+        autolabel(rects2)
+
+        plt.grid(True)
+        plt.show()
+
+# Example usage
+initial_population = [[1000, 1000], [950, 950], [900, 900], [850, 850], [800, 800]]  # Population by age and sex
+fertility_rate = [[0.02, 0.02], [0.02, 0.02], [0.02, 0.02], [0.02, 0.02], [0.02, 0.02]]  # Fertility rate by age and sex
+mortality_rate = [[0.01, 0.01], [0.02, 0.02], [0.03, 0.03], [0.04, 0.04], [0.05, 0.05]]  # Mortality rate by age and sex
+migration_rate = [[0.005, 0.005], [0.005, 0.005], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]  # Migration rate by age and sex
+
+projection = PopulationProjection(initial_population, fertility_rate, mortality_rate, migration_rate)
+projection.project_population(2)  # Project population for 2 years
+
+# Print the projected population
+for age, population in enumerate(projection.get_population()):
+    for sex, count in enumerate(population):
+        print(f"Age: {age}, Sex: {sex}, Population: {count}")
+
+# Plot the results
+projection.plot_population()
